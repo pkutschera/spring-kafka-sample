@@ -1,10 +1,12 @@
 kafka:
   bootstrapAddress:
-    localhost: 9092
+    url: http://localhost:9092
 app:
   topic:
     name: quickstart
   groupid: spring-kafka-sample
+  partition: 0
+  offset: 0
 
 server:
   port: 8081
