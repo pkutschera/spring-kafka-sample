@@ -38,6 +38,8 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("io.projectreactor:reactor-test")
     testImplementation("org.springframework.kafka:spring-kafka-test")
+    testImplementation("io.mockk:mockk:1.12.4")
+    testImplementation("info.novatec.testit:logrecorder-logback:1.7.0")
 }
 
 dependencyManagement {
