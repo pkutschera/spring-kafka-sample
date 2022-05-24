@@ -18,8 +18,8 @@ import org.springframework.stereotype.Component
 
 val logger = KotlinLogging.logger {}
 
-@EnableKafka
 @Configuration
+@EnableKafka
 class KafkaConsumerConfig(
     @Value("\${kafka.bootstrapAddress.url}")
     private val url: String,
