@@ -3,7 +3,7 @@ kafka:
     url: http://localhost:9092
 app:
   topic:
-    name: quickstart
+    name: player
   groupid: spring-kafka-sample
   partition: 0
   offset: 0

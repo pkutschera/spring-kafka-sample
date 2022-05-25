@@ -1,8 +1,8 @@
 package de.pkutschera.spring.kafka.spring.producer
 
+import de.pkutschera.spring.kafka.spring.data.Player
+import de.pkutschera.spring.kafka.spring.data.PlayerSerializer
 import org.apache.kafka.clients.producer.ProducerConfig
-import org.apache.kafka.clients.producer.ProducerRecord
-import org.apache.kafka.clients.producer.RecordMetadata
 import org.apache.kafka.common.serialization.StringSerializer
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
@@ -14,7 +14,6 @@ import org.springframework.kafka.core.ProducerFactory
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
-import java.util.concurrent.Future
 
 @Configuration
 class KafkaProducerConfig(
@@ -26,7 +25,7 @@ class KafkaProducerConfig(
         val props = HashMap<String, Any>()
         props[ProducerConfig.BOOTSTRAP_SERVERS_CONFIG] = url
         props[ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG] = StringSerializer::class.java
-        props[ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG] = StringSerializer::class.java
+        props[ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG] = PlayerSerializer::class.java
         return DefaultKafkaProducerFactory(props);
     }
 
@@ -43,7 +42,7 @@ class ProducerController(
 ) {
 
     @PostMapping("/produce")
-    fun produceMessage(@RequestBody message: String): ResponseEntity<String> {
+    fun produceMessage(@RequestBody message: Player): ResponseEntity<String> {
         val listenableFuture = kafkaTemplate.send(topic, message)
         return ResponseEntity.ok(" message sent to " + listenableFuture.get().producerRecord.topic());
     }

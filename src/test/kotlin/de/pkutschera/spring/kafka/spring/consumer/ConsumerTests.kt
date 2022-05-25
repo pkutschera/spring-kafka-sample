@@ -1,10 +1,13 @@
 package de.pkutschera.spring.kafka.spring.consumer
 
+import de.pkutschera.spring.kafka.spring.data.Player
+import de.pkutschera.spring.kafka.spring.data.PlayerDeserializer
+import de.pkutschera.spring.kafka.spring.data.PlayerSerializer
+import de.pkutschera.spring.kafka.spring.data.Position
 import io.mockk.impl.annotations.MockK
 import io.mockk.mockk
 import io.mockk.verify
 import org.apache.kafka.clients.consumer.ConsumerConfig
-import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.Producer
 import org.apache.kafka.clients.producer.ProducerRecord
@@ -40,28 +43,28 @@ class ConsumerTests {
     @Value("\${app.topic.name}")
     private lateinit var topic: String
 
-    private lateinit var producer: Producer<String?, String>
+    private lateinit var producer: Producer<String, Player>
 
-    private lateinit var listenerContainer: KafkaMessageListenerContainer<String, String>
+    private lateinit var listenerContainer: KafkaMessageListenerContainer<String, Player>
 
     @BeforeAll
     fun setup() {
         producer = KafkaProducer(
             KafkaTestUtils.producerProps(embeddedKafkaBroker.getBrokersAsString()),
             StringSerializer(),
-            StringSerializer()
+            PlayerSerializer()
         )
 
         val consumerProps: MutableMap<String, Any> =
             KafkaTestUtils.consumerProps("consumer", "true", embeddedKafkaBroker)
         consumerProps[ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java
-        consumerProps[ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java
+        consumerProps[ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG] = PlayerDeserializer::class.java
         consumerProps["auto.offset.reset"] = "earliest"
 
-        listenerContainer = KafkaMessageListenerContainer<String, String>(
+        listenerContainer = KafkaMessageListenerContainer<String, Player>(
             DefaultKafkaConsumerFactory(consumerProps),
             ContainerProperties(topic)
-        );
+        )
         listenerContainer.setupMessageListener(consumer)
         listenerContainer.start()
     }
@@ -69,8 +72,8 @@ class ConsumerTests {
     @Test
     fun `retrieve messages from topic`() {
         val messageKey = UUID.randomUUID().toString()
-        val messageValue = "This is a test"
-        producer.send(ProducerRecord(topic, messageKey, messageValue))
+        val messageValue = Player("Erling", "Haaland", "Manchester City", Position.Forward)
+        producer.send(ProducerRecord<String, Player>(topic, messageKey, messageValue))
         producer.flush()
 
         verify(exactly = 1, timeout = 5000L) {
