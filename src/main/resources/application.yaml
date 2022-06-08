@@ -1,15 +1,17 @@
 kafka:
   bootstrapAddress:
     url: http://localhost:9092
+  schemaRegistry:
+    url: http://localhost:8081
 app:
   topic:
-    name: player
+    name: player-avro
   groupid: spring-kafka-sample
   partition: 0
   offset: 0
 
 server:
-  port: 8081
+  port: 8080
 
 logging:
   level:

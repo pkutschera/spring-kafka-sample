@@ -1,6 +1,7 @@
-package de.pkutschera.spring.kafka.spring.consumer
+package de.pkutschera.spring.kafka.consumer
 
-import de.pkutschera.spring.kafka.spring.data.PlayerDeserializer
+import io.confluent.kafka.serializers.KafkaAvroDeserializer
+import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig
 import mu.KotlinLogging
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.ConsumerRecord
@@ -39,12 +40,13 @@ class KafkaConsumerConfig(
 ) {
     @Bean
     fun consumerFactory(): ConsumerFactory<String, Any> {
-        val props = HashMap<String, Any>()
-        props[ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG] = url
-        props[ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java
-        props[ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG] = PlayerDeserializer::class.java
-        props[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "earliest"
-        return DefaultKafkaConsumerFactory(props);
+        val consumerProperties = HashMap<String, Any>()
+        consumerProperties[ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG] = url
+        consumerProperties[ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java
+        consumerProperties[ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG] = KafkaAvroDeserializer::class.java
+        consumerProperties[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "earliest"
+        consumerProperties[KafkaAvroDeserializerConfig.SCHEMA_REGISTRY_URL_CONFIG] = "http://localhost:8081"
+        return DefaultKafkaConsumerFactory(consumerProperties);
     }
 
     @Bean

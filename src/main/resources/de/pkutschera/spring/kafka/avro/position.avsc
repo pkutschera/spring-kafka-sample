@@ -1,0 +1,11 @@
+{
+  "namespace": "de.pkutschera.spring.kafka.avro",
+  "type": "enum",
+  "name": "Position",
+  "symbols": [
+    "Goalkeeper",
+    "Defender",
+    "Midfield",
+    "Forward"
+  ]
+}

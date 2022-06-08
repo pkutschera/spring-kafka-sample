@@ -23,6 +23,12 @@ Spring Boot Sample Using Kafka
 * Each broker hosts some set of partitions
 * Brokers can also handle replication of partitions between each other
 
+## Starting the application
+### Start a local Kafka broker: 
+      ./bin/kafka-server-start ./etc/kafka/kraft/server.properties
+### Start the spring boot application
+      ./gradlew bootRun
+
 ## Reference Documentation
 
 For further reference, please consider the following sections:

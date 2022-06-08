@@ -1,4 +1,4 @@
-package de.pkutschera.spring.kafka.spring
+package de.pkutschera.spring.kafka
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication

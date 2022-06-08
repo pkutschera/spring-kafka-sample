@@ -1,0 +1,26 @@
+{
+  "namespace": "de.pkutschera.spring.kafka.avro",
+  "type": "record",
+  "name": "Player",
+  "fields": [
+    {
+      "name": "firstname",
+      "type": "string"
+    },
+    {
+      "name": "lastname",
+      "type": "string"
+    },
+    {
+      "name": "club",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    {
+      "name": "position",
+      "type": "Position"
+    }
+  ]
+}

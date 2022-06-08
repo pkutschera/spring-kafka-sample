@@ -1,7 +1,8 @@
-package de.pkutschera.spring.kafka.spring.producer
+package de.pkutschera.spring.kafka.producer
 
-import de.pkutschera.spring.kafka.spring.data.Player
-import de.pkutschera.spring.kafka.spring.data.PlayerSerializer
+import de.pkutschera.spring.kafka.avro.Player
+import io.confluent.kafka.serializers.KafkaAvroSerializer
+import io.confluent.kafka.serializers.KafkaAvroSerializerConfig
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.serialization.StringSerializer
 import org.springframework.beans.factory.annotation.Value
@@ -18,15 +19,20 @@ import org.springframework.web.bind.annotation.RestController
 @Configuration
 class KafkaProducerConfig(
     @Value("\${kafka.bootstrapAddress.url}")
-    private val url: String
+    private val serverUrl: String,
+
+    @Value("\${kafka.schemaRegistry.url}")
+    private val schemaRegistryUrl: String
 ) {
     @Bean
     fun producerFactory(): ProducerFactory<String, Any> {
-        val props = HashMap<String, Any>()
-        props[ProducerConfig.BOOTSTRAP_SERVERS_CONFIG] = url
-        props[ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG] = StringSerializer::class.java
-        props[ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG] = PlayerSerializer::class.java
-        return DefaultKafkaProducerFactory(props);
+        val producerProperties = HashMap<String, Any>()
+        producerProperties[ProducerConfig.BOOTSTRAP_SERVERS_CONFIG] = serverUrl
+        producerProperties[ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG] = StringSerializer::class.java
+        producerProperties[ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG] = KafkaAvroSerializer::class.java
+        producerProperties[KafkaAvroSerializerConfig.SCHEMA_REGISTRY_URL_CONFIG] = "http://localhost:8081"
+        producerProperties[KafkaAvroSerializerConfig.AUTO_REGISTER_SCHEMAS] = true
+        return DefaultKafkaProducerFactory(producerProperties);
     }
 
     @Bean
