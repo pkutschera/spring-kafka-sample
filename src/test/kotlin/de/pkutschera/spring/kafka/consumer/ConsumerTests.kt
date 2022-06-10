@@ -2,7 +2,6 @@ package de.pkutschera.spring.kafka.consumer
 
 import de.pkutschera.spring.kafka.avro.Player
 import de.pkutschera.spring.kafka.avro.Position
-import io.confluent.kafka.schemaregistry.ParsedSchema
 import io.confluent.kafka.schemaregistry.avro.AvroSchema
 import io.confluent.kafka.schemaregistry.client.MockSchemaRegistryClient
 import io.confluent.kafka.serializers.KafkaAvroDeserializer
@@ -26,6 +25,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.core.io.ClassPathResource
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory
 import org.springframework.kafka.core.DefaultKafkaProducerFactory
+import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.listener.ContainerProperties
 import org.springframework.kafka.listener.KafkaMessageListenerContainer
 import org.springframework.kafka.test.EmbeddedKafkaBroker
@@ -50,49 +50,33 @@ class ConsumerTests(
     private val consumer = mockk<MessageConsumer>(relaxed = true)
 
     @Value("\${app.topic.name}")
-    private lateinit var topic: String
+    private lateinit var topicName: String
 
-    private lateinit var producer: Producer<String, Any>
+    private lateinit var kafkaTemplate: KafkaTemplate<String, Any>
 
     private lateinit var listenerContainer: KafkaMessageListenerContainer<String, Player>
 
     @BeforeAll
     fun setup() {
         val schemaRegistryClient = MockSchemaRegistryClient()
-        //
-        // val parser = Schema.Parser()
-        //
-        // schemaRegistryClient.register(
-        //     "de.pkutschera.spring.kafka.avro.Position", AvroSchema(
-        //         parser.parse(
-        //             ClassPathResource("de/pkutschera/spring/kafka/avro/position.avsc").file
-        //         )
-        //     )
-        // )
-        // schemaRegistryClient.register(
-        //     "de.pkutschera.spring.kafka.avro.Player", AvroSchema(
-        //         parser.parse(
-        //             ClassPathResource("/de/pkutschera/spring/kafka/avro/player.avsc").file
-        //         )
-        //     )
-        // )
         val kafkaAvroSerializer = KafkaAvroSerializer(schemaRegistryClient)
         val kafkaAvroDeserializer = KafkaAvroDeserializer(schemaRegistryClient)
 
         val producerProperties = KafkaTestUtils.producerProps(embeddedKafkaBroker.getBrokersAsString())
         producerProperties[KafkaAvroSerializerConfig.AUTO_REGISTER_SCHEMAS] = true
-        producerProperties[KafkaAvroDeserializerConfig.SCHEMA_REGISTRY_URL_CONFIG] = "mock://localhost"
+        producerProperties[KafkaAvroSerializerConfig.SCHEMA_REGISTRY_URL_CONFIG] = "mock://localhost"
         val producerFactory = DefaultKafkaProducerFactory(producerProperties, StringSerializer(), kafkaAvroSerializer)
-        producer = producerFactory.createProducer()
+
+        kafkaTemplate = KafkaTemplate(producerFactory)
 
         val consumerProps: MutableMap<String, Any> =
             KafkaTestUtils.consumerProps("consumer", "true", embeddedKafkaBroker)
-        consumerProps[KafkaAvroSerializerConfig.SCHEMA_REGISTRY_URL_CONFIG] = "mock://localhost"
+        consumerProps[KafkaAvroDeserializerConfig.SCHEMA_REGISTRY_URL_CONFIG] = "mock://localhost"
         consumerProps["auto.offset.reset"] = "earliest"
 
         listenerContainer = KafkaMessageListenerContainer<String, Player>(
             DefaultKafkaConsumerFactory(consumerProps, StringDeserializer(), kafkaAvroDeserializer),
-            ContainerProperties(topic)
+            ContainerProperties(topicName)
         )
         listenerContainer.setupMessageListener(consumer)
         listenerContainer.start()
@@ -100,10 +84,8 @@ class ConsumerTests(
 
     @Test
     fun `retrieve messages from topic`() {
-        val messageKey = UUID.randomUUID().toString()
         val messageValue = Player("Erling", "Haaland", "Manchester City", Position.Forward)
-        producer.send(ProducerRecord<String, Any>(topic, messageKey, messageValue))
-        producer.flush()
+        kafkaTemplate.send(topicName, messageValue)
 
         verify(exactly = 1, timeout = 5000L) {
             consumer.onMessage(any())

@@ -26,6 +26,8 @@ Spring Boot Sample Using Kafka
 ## Starting the application
 ### Start a local Kafka broker: 
       ./bin/kafka-server-start ./etc/kafka/kraft/server.properties
+### Start a local schema registry broker:
+      ./bin/schema-registry-start ./etc/schema-registry/schema-registry.properties
 ### Start the spring boot application
       ./gradlew bootRun
 
